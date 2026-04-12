@@ -171,20 +171,41 @@ namespace GrasscutterTools.Pages
         {
             TextMapData.LoadTextMapByLanguage(languageCode);
 
-            var activityMap = new Dictionary<int, string>(activityItems.Count);
+            // 从 JSON 构建 activityId -> 翻译文本的映射
+            var activityMap = new Dictionary<int, string>();
             foreach (var item in activityItems)
                 activityMap[item.ActivityId] = TextMapData.GetText(item.NameTextMapHash);
 
             var buffer = new StringBuilder();
-            foreach (var item in GameData.Activity)
+            var processedIds = new HashSet<int>();
+
+            // 保持原有的分组结构（从 GameData.Activity 读取），保留人工整理的内容
+            foreach (var group in GameData.Activity)
             {
-                buffer.Append("// ").AppendLine(item.Key);
-                foreach (var id in item.Value.Ids)
+                buffer.Append("// ").AppendLine(group.Key);
+                foreach (var id in group.Value.Ids)
                 {
+                    processedIds.Add(id);
                     buffer.Append(id).Append(':');
-                    buffer.AppendLine(activityMap.TryGetValue(id, out var title) ? title : item.Value[id]);
+                    // 对于中文，保留人工整理的内容；对于其他语言，使用 JSON 中的官方翻译
+                    if (languageCode == "zh-cn")
+                        buffer.AppendLine(group.Value[id]); // 使用旧的人工整理的内容
+                    else
+                        buffer.AppendLine(activityMap.TryGetValue(id, out var title) ? title : group.Value[id]);
                 }
             }
+
+            // 添加 JSON 中存在但旧文件中不存在的新活动
+            var newActivities = activityItems.Where(item => !processedIds.Contains(item.ActivityId)).OrderBy(item => item.ActivityId);
+            if (newActivities.Any())
+            {
+                buffer.AppendLine("// New");
+                foreach (var item in newActivities)
+                {
+                    buffer.Append(item.ActivityId).Append(':').AppendLine(activityMap[item.ActivityId]);
+                }
+            }
+
             var activityFilePath = Path.Combine(TxtProjectResRoot.Text, languageCode, "Activity.txt");
             File.WriteAllText(activityFilePath, buffer.ToString(), Encoding.UTF8);
         }
