@@ -155,10 +155,10 @@ namespace GrasscutterTools.Pages
 
                 TextMapData ??= new TextMapData(TxtGcResRoot.Text);
 
-                UpdateActivityForLanguage(activityItems, "TextMapCHS", "zh-cn");
-                UpdateActivityForLanguage(activityItems, "TextMapCHT", "zh-tw");
-                UpdateActivityForLanguage(activityItems, "TextMapEN", "en-us");
-                // UpdateActivityForLanguage(activityItems, "TextMapRU", "ru-ru");
+                UpdateActivityForLanguage(activityItems, "zh-cn");
+                UpdateActivityForLanguage(activityItems, "zh-tw");
+                UpdateActivityForLanguage(activityItems, "en-us");
+                UpdateActivityForLanguage(activityItems, "ru-ru");
                 MessageBox.Show("OK", Resources.Tips, MessageBoxButtons.OK);
             }
             catch (Exception ex)
@@ -167,10 +167,9 @@ namespace GrasscutterTools.Pages
             }
         }
 
-        private void UpdateActivityForLanguage(IReadOnlyCollection<NewActivityItem> activityItems, string textMap, string language)
+        private void UpdateActivityForLanguage(IReadOnlyCollection<NewActivityItem> activityItems, string languageCode)
         {
-            var i = Array.IndexOf(TextMapData.TextMapFiles, textMap);
-            TextMapData.LoadTextMap(TextMapData.TextMapFilePaths[i]);
+            TextMapData.LoadTextMapByLanguage(languageCode);
 
             var activityMap = new Dictionary<int, string>(activityItems.Count);
             foreach (var item in activityItems)
@@ -186,21 +185,15 @@ namespace GrasscutterTools.Pages
                     buffer.AppendLine(activityMap.TryGetValue(id, out var title) ? title : item.Value[id]);
                 }
             }
-            var activityFilePath = Path.Combine(TxtProjectResRoot.Text, language, "Activity.txt");
+            var activityFilePath = Path.Combine(TxtProjectResRoot.Text, languageCode, "Activity.txt");
             File.WriteAllText(activityFilePath, buffer.ToString(), Encoding.UTF8);
-
-            //File.WriteAllLines(
-            //    activityFilePath,
-            //    activityItems.Select(it => $"{it.ActivityId}:{TextMapData.GetText(it.NameTextMapHash)}"),
-            //    Encoding.UTF8);
         }
 
 
 
-        private void UpdateGachaResourceForLanguage(string textMap, string language)
+        private void UpdateGachaResourceForLanguage(string languageCode)
         {
-            var i = Array.IndexOf(TextMapData.TextMapFiles, textMap);
-            TextMapData.LoadTextMap(TextMapData.TextMapFilePaths[i]);
+            TextMapData.LoadTextMapByLanguage(languageCode);
 
             var titleBuffer = new StringBuilder();
             const string titlePattern = "UI_GACHA_SHOW_PANEL_([^_]+?)_TITLE";
@@ -216,7 +209,7 @@ namespace GrasscutterTools.Pages
                     .AppendLine(Regex.Replace(text, markPattern, ""));
             }
 
-            var titleFilePath = Path.Combine(TxtProjectResRoot.Text, language, "GachaBannerTitle.txt");
+            var titleFilePath = Path.Combine(TxtProjectResRoot.Text, languageCode, "GachaBannerTitle.txt");
             File.WriteAllText(titleFilePath, titleBuffer.ToString(), Encoding.UTF8);
 
         }
@@ -229,10 +222,10 @@ namespace GrasscutterTools.Pages
 
                 TextMapData ??= new TextMapData(TxtGcResRoot.Text);
 
-                UpdateGachaResourceForLanguage("TextMapCHS", "zh-cn");
-                UpdateGachaResourceForLanguage("TextMapCHT", "zh-tw");
-                UpdateGachaResourceForLanguage("TextMapEN", "en-us");
-                // UpdateGachaResourceForLanguage("TextMapRU", "ru-ru");
+                UpdateGachaResourceForLanguage("zh-cn");
+                UpdateGachaResourceForLanguage("zh-tw");
+                UpdateGachaResourceForLanguage("en-us");
+                UpdateGachaResourceForLanguage("ru-ru");
                 MessageBox.Show("OK", Resources.Tips, MessageBoxButtons.OK);
             }
             catch (Exception ex)
